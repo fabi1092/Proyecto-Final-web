@@ -10,8 +10,11 @@ module.exports = (sequelize, DataTypes) => {
         as: 'ticket'
       });
 
-      // NOTA: Cuando hagamos el GEN-04, agregaremos:
-      // Comentario.belongsTo(models.Usuario, { foreignKey: 'usuarioId' })
+      // Relación inversa -> Un Comentario pertenece a un Usuario
+      Comentario.belongsTo(models.Usuario, { 
+        foreignKey: 'usuarioId',
+        as: 'autor'
+      });
     }
   }
 

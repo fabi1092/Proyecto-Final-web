@@ -10,8 +10,11 @@ module.exports = (sequelize, DataTypes) => {
         as: 'comentarios'
       });
       
-      // NOTA: Cuando hagamos el GEN-04 (Usuarios), agregaremos:
-      // Ticket.belongsTo(models.Usuario, { foreignKey: 'usuarioId' })
+      // Relación inversa -> Un Ticket pertenece a un Usuario (El que borraste xd)
+      Ticket.belongsTo(models.Usuario, { 
+        foreignKey: 'usuarioId',
+        as: 'autor'
+      });
     }
   }
   
@@ -35,7 +38,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Ticket',
-    tableName: 'Tickets' // Asegura que coincida con el nombre en la migración
+    tableName: 'Tickets'
   });
   
   return Ticket;

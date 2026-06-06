@@ -1,5 +1,4 @@
 const path = require('path');
-// Forzamos a dotenv a buscar el .env exactamente en la carpeta server/
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 /*
 console.log("\n=== DEBUG DE VARIABLES ===");

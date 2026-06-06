@@ -1,15 +1,18 @@
 const express = require('express');
+const cors = require('cors'); // Importante para el frontend
+const authRoutes = require('./routes/authRoutes');
+
 const app = express();
 
-// Middleware básico
+app.use(cors({ origin: process.env.CORS_ORIGIN })); 
 app.use(express.json());
 
-// Ruta de prueba
-app.get('/api/v1', (req, res) => {
-  res.json({ message: '¡El servidor del sistema de tickets está funcionando!' });
-});
+// Montar la ruta
+const ticketRoutes = require('./routes/ticketRoutes');
 
-// Levantar el servidor
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/tickets', ticketRoutes);
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
