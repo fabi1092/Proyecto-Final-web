@@ -3,10 +3,12 @@ const router = express.Router();
 const ticketController = require('../controllers/ticketController');
 const authenticate = require('../middlewares/authMiddleware');
 
+router.use(authenticate); // Todo protegido
 
-router.use(authenticate); 
-
-router.get('/', ticketController.getTickets); 
-router.post('/', ticketController.createTicket); 
+// El CRUD completo
+router.get('/', ticketController.getTickets);           // Leer
+router.post('/', ticketController.createTicket);        // Crear
+router.put('/:id', ticketController.updateTicket);      // Actualizar
+router.delete('/:id', ticketController.deleteTicket);   // Eliminar
 
 module.exports = router;
