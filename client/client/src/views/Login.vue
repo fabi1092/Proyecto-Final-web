@@ -24,11 +24,12 @@ const login = async () => {
 
     if (res.ok) {
       localStorage.setItem('token', data.token);
-      mensaje.value = "¡Inicio de sesión exitoso!";
+      mensaje.value = "¡Inicio de sesión exitoso! Entrando...";
       
-      
-     // Redirección forzada e infalible
-      window.location.href = '/dashboard';
+      // Le damos 1 segundo al navegador para asimilar el token antes de saltar
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 1000);
       
     } else {
       mensaje.value = data.message || "Error al iniciar sesión";
