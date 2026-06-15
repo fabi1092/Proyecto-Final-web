@@ -46,7 +46,7 @@ const login = async () => {
       
       <div class="opciones-extra">
         <p>¿No tienes una cuenta?</p>
-        <a href="/register" class="btn-secundario">Regístrate aquí</a>
+        <router-link to="/register" class="btn-secundario">Regístrate aquí</router-link>
       </div>
     </div>
   </div>
