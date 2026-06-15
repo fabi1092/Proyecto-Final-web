@@ -10,7 +10,7 @@ const getTickets = async (req, res, next) => {
     const whereClause = {};
     
     // 2. LA MAGIA: Si el que hace la petición NO es el jefe, le ponemos el candado de su ID.
-    if (req.usuario.email !== 'admin@admin.com') {
+    if (req.query.esAdmin !== 'true') {
       whereClause.usuarioId = req.usuario.id;
     }
     

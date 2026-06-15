@@ -21,7 +21,8 @@ const getAuthHeaders = () => {
 
 const obtenerTickets = async () => {
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets`, { headers: getAuthHeaders() });
+    // Le pegamos la señal secreta al final del enlace
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets?esAdmin=${esAdmin.value}`, { headers: getAuthHeaders() });
     if (res.ok) tickets.value = await res.json();
   } catch (error) { console.error("Error al cargar tickets"); }
 };
