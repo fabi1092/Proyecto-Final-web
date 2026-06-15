@@ -2,11 +2,13 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Login from '../views/Login.vue';
 import Dashboard from '../views/Dashboard.vue';
 import Register from '../components/Register.vue';
+import ResetPassword from '../views/ResetPassword.vue';
 
 const routes = [
   { path: '/', redirect: '/login' },
   { path: '/login', component: Login },
   { path: '/register', component: Register },
+  { path: '/reset', component: ResetPassword },
   { path: '/dashboard', component: Dashboard, meta: { requiresAuth: true } }
 ];
 

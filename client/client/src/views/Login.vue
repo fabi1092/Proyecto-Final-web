@@ -1,6 +1,9 @@
 <template>
   <div class="login-container">
     <h2>Iniciar Sesión</h2>
+    <div class="links">
+      <router-link to="/reset">¿Olvidaste tu contraseña?</router-link>
+    </div>
     <form @submit.prevent="login">
       <div>
         <label>Email:</label>

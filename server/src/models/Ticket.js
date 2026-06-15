@@ -4,42 +4,31 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Ticket extends Model {
     static associate(models) {
-      // Relación 1:N -> Un Ticket tiene muchos Comentarios
-      Ticket.hasMany(models.Comentario, {
-        foreignKey: 'ticketId',
-        as: 'comentarios'
-      });
-      
-      // Relación inversa -> Un Ticket pertenece a un Usuario (El que borraste xd)
-      Ticket.belongsTo(models.Usuario, { 
-        foreignKey: 'usuarioId',
-        as: 'autor'
-      });
+      // Un Ticket pertenece a un Usuario (solo una vez declarado)
+      Ticket.belongsTo(models.Usuario, { foreignKey: 'usuarioId', as: 'autor' });
+      // Un Ticket tiene muchos Comentarios
+      Ticket.hasMany(models.Comentario, { foreignKey: 'ticketId', as: 'comentarios' });
     }
   }
-  
   Ticket.init({
-    titulo: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    descripcion: {
-      type: DataTypes.TEXT,
-      allowNull: false
-    },
+    titulo: DataTypes.STRING,
+    descripcion: DataTypes.TEXT,
     estado: {
-      type: DataTypes.ENUM('Abierto', 'En Progreso', 'Cerrado'),
+      type: DataTypes.STRING,
       defaultValue: 'Abierto'
     },
-    usuarioId: {
+    prioridad: {
+      type: DataTypes.STRING,
+      defaultValue: 'Media'
+    },
+    tiempoResolucion: {
       type: DataTypes.INTEGER,
-      allowNull: false
-    }
+      allowNull: true
+    },
+    usuarioId: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Ticket',
-    tableName: 'Tickets'
   });
-  
   return Ticket;
 };
