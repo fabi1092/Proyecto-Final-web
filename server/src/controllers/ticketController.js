@@ -68,13 +68,13 @@ const updateTicket = async (req, res, next) => {
     
     if (!ticket) return res.status(404).json({ message: "Ticket no encontrado" });
 
+    // Verificamos si es admin
     const admins = ['admin@admin.com', 'otro-admin@email.com', 'profe@universidad.cl'];
     const isAdmin = admins.includes(req.usuario.email);
-    const isOwner = ticket.usuarioId === req.usuario.id;
 
-    // Solo el dueño o el admin pueden editar/cerrar
-    if (!isAdmin && !isOwner) {
-      return res.status(403).json({ message: "No tienes permiso para modificar este ticket" });
+    // LA REGLA DE ORO: Solo el administrador puede modificar/cerrar tickets
+    if (!isAdmin) {
+      return res.status(403).json({ message: "Acceso denegado: Solo un administrador puede cerrar tickets" });
     }
 
     await ticket.update(req.body);

@@ -151,7 +151,7 @@ onMounted(async () => {
         <div class="acciones">
           <input v-model="comentariosLocales[ticket.id]" placeholder="Añadir comentario..." />
           <button @click.prevent="agregarComentario(ticket.id)">Comentar</button>
-          <button class="btn-cerrar" v-if="ticket.estado === 'Abierto'" @click.prevent="cerrarTicket(ticket.id)">Cerrar</button>
+          <button class="btn-cerrar" v-if="ticket.estado === 'Abierto' && esAdmin" @click.prevent="cerrarTicket(ticket.id)">Cerrar</button>
           <button class="btn-eliminar" @click.prevent="eliminarTicket(ticket.id)">Eliminar</button>
         </div>
 
