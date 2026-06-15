@@ -9,5 +9,12 @@ router.post('/login', login);
 router.put('/reset', resetPassword);
 router.post('/solicitar-codigo', solicitarCodigo);
 
+module.exports = { 
+  register, 
+  login, 
+  solicitarCodigo, 
+  resetPassword 
+};
+
 // ESTA LÍNEA ES LA QUE FALTABA Y CAUSABA EL ERROR
 module.exports = router;
