@@ -1,110 +1,66 @@
-<template>
-  <div class="register-container">
-    <h2>Crear Cuenta</h2>
-    <form @submit.prevent="registrarUsuario">
-      <div>
-        <label for="nombre">Nombre:</label>
-        <input type="text" id="nombre" v-model="form.nombre" required />
-      </div>
-      <div>
-        <label for="email">Correo Electrónico:</label>
-        <input type="email" id="email" v-model="form.email" required />
-      </div>
-      <div>
-        <label for="password">Contraseña:</label>
-        <input type="password" id="password" v-model="form.password" required />
-      </div>
-      
-      <button type="submit">Registrarse</button>
-    </form>
-
-    <div v-if="errorMsg" class="error-alert">
-      {{ errorMsg }}
-    </div>
-    
-    <div v-if="successMsg" class="success-alert">
-      {{ successMsg }}
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { ref } from 'vue';
 
-const form = ref({
-  nombre: '',
-  email: '',
-  password: ''
-});
+const nombre = ref('');
+const email = ref('');
+const password = ref('');
+const mensaje = ref('');
 
-const errorMsg = ref(null);
-const successMsg = ref(null);
-
-const registrarUsuario = async () => {
-  errorMsg.value = null;
-  successMsg.value = null;
+const registrar = async () => {
+  if (!nombre.value || !email.value || !password.value) {
+    mensaje.value = "Por favor, llena todos los campos.";
+    return;
+  }
 
   try {
-    // Apunta a la variable de entorno de Vite o a localhost si no está configurada
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
-    
-    const response = await fetch(`${apiUrl}/auth/register`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(form.value)
+      body: JSON.stringify({
+        nombre: nombre.value,
+        email: email.value,
+        password: password.value
+      })
     });
 
-    const data = await response.json();
+    const data = await res.json();
 
-    if (!response.ok) {
-      // Captura el error (400 o 409) y lo muestra en UI
-      throw new Error(data.message || 'Error al registrar');
+    if (res.ok) {
+      mensaje.value = "¡Registro exitoso! Ya puedes ir a iniciar sesión.";
+      // Limpiar los campos después de registrarse
+      nombre.value = '';
+      email.value = '';
+      password.value = '';
+    } else {
+      mensaje.value = data.message || "Error al crear la cuenta";
     }
-
-    // Registro exitoso
-    successMsg.value = '¡Registro exitoso! Ya puedes iniciar sesión.';
-    form.value = { nombre: '', email: '', password: '' };
-
   } catch (error) {
-    errorMsg.value = error.message;
+    console.error(error);
+    mensaje.value = "Error al conectar con el servidor en la nube";
   }
 };
 </script>
 
+<template>
+  <div class="contenedor">
+    <h2>Crear Cuenta Nueva</h2>
+    <div class="formulario">
+      <input v-model="nombre" type="text" placeholder="Tu nombre completo" />
+      <input v-model="email" type="email" placeholder="Correo electrónico" />
+      <input v-model="password" type="password" placeholder="Contraseña segura" />
+      <button @click="registrar">Registrarse</button>
+      <p class="mensaje" v-if="mensaje">{{ mensaje }}</p>
+    </div>
+  </div>
+</template>
+
 <style scoped>
-.register-container {
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}
-.error-alert {
-  color: red;
-  margin-top: 15px;
-  background-color: #fee;
-  padding: 10px;
-  border-radius: 4px;
-}
-.success-alert {
-  color: green;
-  margin-top: 15px;
-  background-color: #efe;
-  padding: 10px;
-  border-radius: 4px;
-}
-div {
-  margin-bottom: 10px;
-}
-label {
-  display: block;
-  margin-bottom: 5px;
-}
-input {
-  width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
-}
+.contenedor { max-width: 400px; margin: 50px auto; text-align: center; font-family: sans-serif; }
+.formulario { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+button { padding: 10px; background-color: #17a2b8; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+button:hover { background-color: #138496; }
+.mensaje { color: #28a745; font-weight: bold; margin-top: 15px; }
 </style>

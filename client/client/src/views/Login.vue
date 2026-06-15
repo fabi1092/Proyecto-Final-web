@@ -1,55 +1,57 @@
-<template>
-  <div class="login-container">
-    <h2>Iniciar Sesión</h2>
-    <div class="links">
-      <router-link to="/reset">¿Olvidaste tu contraseña?</router-link>
-    </div>
-    <form @submit.prevent="login">
-      <div>
-        <label>Email:</label>
-        <input type="email" v-model="email" required />
-      </div>
-      <div>
-        <label>Contraseña:</label>
-        <input type="password" v-model="password" required />
-      </div>
-      <button type="submit">Ingresar</button>
-    </form>
-    <p v-if="errorMsg" style="color: red;">{{ errorMsg }}</p>
-  </div>
-</template>
-
 <script setup>
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
 
 const email = ref('');
 const password = ref('');
-const errorMsg = ref('');
-const router = useRouter();
+const mensaje = ref('');
 
 const login = async () => {
   try {
-    const res = await fetch('http://localhost:3000/api/v1/auth/login', {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email.value, password: password.value })
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: email.value,
+        password: password.value
+      })
     });
-    
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message);
 
-    // GEN-05: Cliente almacena token y redirige
-    localStorage.setItem('token', data.token);
-    router.push('/dashboard');
+    const data = await res.json();
+
+    if (res.ok) {
+      localStorage.setItem('token', data.token);
+      mensaje.value = "¡Inicio de sesión exitoso!";
+      // Descomenta la siguiente línea si quieres que te redirija automáticamente
+      // window.location.href = '/dashboard'; 
+    } else {
+      mensaje.value = data.message || "Error al iniciar sesión";
+    }
   } catch (error) {
-    errorMsg.value = error.message;
+    console.error(error);
+    mensaje.value = "Error al conectar con el servidor";
   }
 };
 </script>
 
+<template>
+  <div class="contenedor">
+    <h2>Iniciar Sesión</h2>
+    <div class="formulario">
+      <input v-model="email" type="email" placeholder="Correo electrónico" />
+      <input v-model="password" type="password" placeholder="Contraseña" />
+      <button @click="login">Entrar al Sistema</button>
+      <p class="mensaje" v-if="mensaje">{{ mensaje }}</p>
+    </div>
+  </div>
+</template>
+
 <style scoped>
-.login-container { max-width: 300px; margin: 50px auto; text-align: center; }
-input { width: 100%; margin-bottom: 10px; padding: 8px; }
-button { width: 100%; padding: 10px; cursor: pointer; }
+.contenedor { max-width: 400px; margin: 50px auto; text-align: center; font-family: sans-serif; }
+.formulario { display: flex; flex-direction: column; gap: 15px; }
+input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+button { padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+button:hover { background-color: #218838; }
+.mensaje { color: #d9534f; font-weight: bold; }
 </style>
