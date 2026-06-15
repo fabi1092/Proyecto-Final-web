@@ -42,7 +42,7 @@ const crearTicket = async () => {
       })
     });
     if (res.ok) {
-      nuevoTitulo.value = ''; nuevaDescripcion.value = ''; // Limpiar campos
+      nuevoTitulo.value = ''; nuevaDescripcion.value = ''; 
       obtenerTickets(); 
       obtenerMetricas(); 
     }
@@ -85,6 +85,15 @@ const agregarComentario = async (id) => {
   } catch (error) { console.error("Error al comentar"); }
 };
 
+// --- NUEVA FUNCIÓN: CERRAR SESIÓN ---
+const cerrarSesion = () => {
+  // 1. Borramos el pase VIP de la memoria del navegador
+  localStorage.removeItem('token');
+  
+  // 2. Redirección forzada al Login (Cambia '/' por '/login' si es necesario)
+  window.location.href = '/'; 
+};
+
 onMounted(() => {
   obtenerTickets();
   obtenerMetricas();
@@ -93,7 +102,10 @@ onMounted(() => {
 
 <template>
   <div class="dashboard">
-    <h1>Panel de Soporte Técnico</h1>
+    <div class="header">
+      <h1>Panel de Soporte Técnico</h1>
+      <button class="btn-salir" @click.prevent="cerrarSesion">Cerrar Sesión</button>
+    </div>
 
     <div class="metricas" v-if="metricas">
       <div class="tarjeta">Total Tickets: <b>{{ metricas.totalTickets }}</b></div>
@@ -110,7 +122,7 @@ onMounted(() => {
         <option value="Media">Prioridad Media</option>
         <option value="Alta">Prioridad Alta</option>
       </select>
-      <button class="btn-crear" @click="crearTicket">Enviar Ticket</button>
+      <button class="btn-crear" @click.prevent="crearTicket">Enviar Ticket</button>
     </div>
 
     <h3>Tus Tickets</h3>
@@ -122,9 +134,9 @@ onMounted(() => {
         
         <div class="acciones">
           <input v-model="nuevoComentario" placeholder="Añadir comentario..." />
-          <button @click="agregarComentario(ticket.id)">Comentar</button>
-          <button class="btn-cerrar" v-if="ticket.estado === 'Abierto'" @click="cerrarTicket(ticket.id)">Cerrar Ticket</button>
-          <button class="btn-eliminar" @click="eliminarTicket(ticket.id)">Eliminar</button>
+          <button @click.prevent="agregarComentario(ticket.id)">Comentar</button>
+          <button class="btn-cerrar" v-if="ticket.estado === 'Abierto'" @click.prevent="cerrarTicket(ticket.id)">Cerrar Ticket</button>
+          <button class="btn-eliminar" @click.prevent="eliminarTicket(ticket.id)">Eliminar</button>
         </div>
       </div>
     </div>
@@ -133,7 +145,13 @@ onMounted(() => {
 
 <style scoped>
 .dashboard { max-width: 800px; margin: 20px auto; font-family: sans-serif; }
-h1, h3 { color: #333; }
+/* Estilos del nuevo encabezado */
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #eee; }
+h1 { color: #333; margin: 0; }
+.btn-salir { background-color: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+.btn-salir:hover { background-color: #c82333; }
+
+h3 { color: #333; }
 .metricas { display: flex; gap: 15px; margin-bottom: 20px; }
 .tarjeta { background: #f8f9fa; padding: 15px; border-radius: 8px; flex: 1; text-align: center; border: 1px solid #ddd; }
 .crear-ticket { display: flex; flex-direction: column; gap: 10px; background: #e9ecef; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
@@ -141,8 +159,11 @@ input, select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
 button { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; color: white; background: #007bff; }
 button:hover { background: #0056b3; }
 .btn-crear { background: #28a745; font-size: 16px; padding: 12px; }
+.btn-crear:hover { background: #218838; }
 .ticket-card { background: white; padding: 15px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 .acciones { display: flex; gap: 10px; margin-top: 15px; }
 .btn-cerrar { background: #ffc107; color: black; }
+.btn-cerrar:hover { background: #e0a800; }
 .btn-eliminar { background: #dc3545; }
+.btn-eliminar:hover { background: #c82333; }
 </style>
