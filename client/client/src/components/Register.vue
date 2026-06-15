@@ -11,7 +11,12 @@ const mensajeError = ref('');
 
 const registrarUsuario = async () => {
   // Limpiamos el error cada vez que el usuario hace clic
-  mensajeError.value = ''; 
+  mensajeError.value = '';
+  
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.value)) {
+    mensajeError.value = "Por favor, ingresa un correo electrónico válido.";
+    return; // Detenemos todo aquí, no enviamos nada al servidor
 
   try {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
