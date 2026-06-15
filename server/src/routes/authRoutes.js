@@ -5,5 +5,6 @@ const { register, login } = require('../controllers/authController');
 // Rutas Públicas
 router.post('/register', register);
 router.post('/login', login);
+router.put('/reset', authController.resetPassword);
 
 module.exports = router;
