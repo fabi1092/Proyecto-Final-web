@@ -97,17 +97,20 @@ const cerrarSesion = () => {
   window.location.href = '/'; 
 };
 
-onMounted(() => {
-  // --- MAGIA DEL ADMINISTRADOR ---
+// Dentro de tu onMounted en Dashboard.vue
+onMounted(async () => {
   const correoLogueado = localStorage.getItem('email');
   
-  // Convertimos a minúsculas para evitar errores de tipeo
-  if (correoLogueado && correoLogueado.toLowerCase() === 'admin@admin.com') {
+  // Lista de admins (debe ser igual a la del backend)
+  const admins = ['admin@admin.com', 'otro-admin@email.com', 'profe@universidad.cl'];
+
+  // Si el correo existe y está en la lista, es admin
+  if (correoLogueado && admins.includes(correoLogueado.toLowerCase())) {
     esAdmin.value = true;
   }
 
-  obtenerTickets();
-  obtenerMetricas();
+  await obtenerTickets();
+  await obtenerMetricas();
 });
 </script>
 

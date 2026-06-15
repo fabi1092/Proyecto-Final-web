@@ -7,9 +7,11 @@ const getTickets = async (req, res, next) => {
     const { estado, prioridad } = req.query;
     const whereClause = {};
 
-    // ¡La magia! El servidor comprueba directamente el correo del usuario del Token.
-    // Esto es mucho más seguro y no falla.
-    if (req.usuario.email !== 'admin@admin.com') { // Asegúrate que este sea TU correo de admin
+    // Lista de correos permitidos como administradores
+    const admins = ['admin@admin.com', 'otro-admin@email.com', 'profe@universidad.cl'];
+
+    // Si el correo NO está en la lista, aplicamos el filtro por usuario
+    if (!admins.includes(req.usuario.email)) {
       whereClause.usuarioId = req.usuario.id;
     }
     
