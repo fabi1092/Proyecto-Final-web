@@ -97,16 +97,17 @@ const cerrarSesion = () => {
   window.location.href = '/'; 
 };
 
-// Dentro de tu onMounted en Dashboard.vue
 onMounted(async () => {
   const correoLogueado = localStorage.getItem('email');
-  
-  // Lista de admins (debe ser igual a la del backend)
+  console.log("El correo en LocalStorage es:", correoLogueado); // MIRA ESTO EN LA CONSOLA (F12 -> Console)
+
   const admins = ['admin@admin.com', 'otro-admin@email.com', 'profe@universidad.cl'];
 
-  // Si el correo existe y está en la lista, es admin
   if (correoLogueado && admins.includes(correoLogueado.toLowerCase())) {
     esAdmin.value = true;
+    console.log("¡Eres admin!");
+  } else {
+    console.log("No eres admin o el correo no coincide");
   }
 
   await obtenerTickets();

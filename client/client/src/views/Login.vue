@@ -24,6 +24,10 @@ const login = async () => {
 
     if (res.ok) {
       localStorage.setItem('token', data.token);
+
+      localStorage.setItem('email', email.value);
+
+      
       mensaje.value = "¡Inicio de sesión exitoso! Entrando...";
       
       // Le damos 1 segundo al navegador para asimilar el token antes de saltar
