@@ -64,49 +64,43 @@ const createTicket = async (req, res, next) => {
 const updateTicket = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { estado, tiempoResolucion } = req.body;
+    const ticket = await Ticket.findByPk(id);
     
-    const ticket = await Ticket.findOne({ where: { id, usuarioId: req.usuario.id } });
-    if (!ticket) return res.status(404).json({ error: true, message: 'Ticket no encontrado' });
+    if (!ticket) return res.status(404).json({ message: "Ticket no encontrado" });
 
-    // [rq-05] Transición: No editar tickets ya cerrados
-    if (ticket.estado === 'Cerrado') {
-       return res.status(409).json({ error: true, message: 'Regla de negocio: No se puede modificar un ticket que ya fue cerrado.' });
+    const admins = ['admin@admin.com', 'otro-admin@email.com', 'profe@universidad.cl'];
+    const isAdmin = admins.includes(req.usuario.email);
+    const isOwner = ticket.usuarioId === req.usuario.id;
+
+    // Solo el dueño o el admin pueden editar/cerrar
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: "No tienes permiso para modificar este ticket" });
     }
 
-    // [rq-05] Validar valores permitidos de Estado
-    const estadosValidos = ['Abierto', 'En Progreso', 'Cerrado'];
-    if (estado && !estadosValidos.includes(estado)) {
-      return res.status(422).json({ error: true, message: 'Estado inválido. Use Abierto, En Progreso o Cerrado.' });
-    }
-
-    // [rq-06] Regla: Solo tickets cerrados aceptan tiempo_resolucion
-    if (tiempoResolucion) {
-      if (estado !== 'Cerrado') {
-        return res.status(422).json({ error: true, message: 'Regla de negocio: Solo puedes registrar el tiempo de resolución si el estado es Cerrado.' });
-      }
-      ticket.tiempoResolucion = tiempoResolucion;
-    }
-
-    if (estado) ticket.estado = estado;
-    await ticket.save();
-    return res.json({ error: false, message: 'Ticket actualizado con éxito', ticket });
-  } catch (error) {
-    next(error);
-  }
+    await ticket.update(req.body);
+    return res.json(ticket);
+  } catch (error) { next(error); }
 };
 
 const deleteTicket = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const ticket = await Ticket.findOne({ where: { id, usuarioId: req.usuario.id } });
-    if (!ticket) return res.status(404).json({ error: true, message: 'Ticket no encontrado' });
+    const ticket = await Ticket.findByPk(id);
+
+    if (!ticket) return res.status(404).json({ message: "Ticket no encontrado" });
+
+    const admins = ['admin@admin.com', 'otro-admin@email.com', 'profe@universidad.cl'];
+    const isAdmin = admins.includes(req.usuario.email);
+    const isOwner = ticket.usuarioId === req.usuario.id;
+
+    // Solo el dueño o el admin pueden borrar
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: "No tienes permiso para eliminar este ticket" });
+    }
 
     await ticket.destroy();
-    return res.json({ error: false, message: 'Ticket eliminado' });
-  } catch (error) {
-    next(error);
-  }
+    return res.json({ message: "Ticket eliminado" });
+  } catch (error) { next(error); }
 };
 
 // [rq-04] Agregar un Comentario al Ticket
@@ -114,24 +108,28 @@ const addComentario = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { texto } = req.body;
-    
-    if (!texto) return res.status(400).json({ error: true, message: 'El comentario no puede estar vacío' });
-    
-    const ticket = await Ticket.findOne({ where: { id, usuarioId: req.usuario.id } });
-    if (!ticket) return res.status(404).json({ error: true, message: 'Ticket no encontrado' });
+    const ticket = await Ticket.findByPk(id);
 
-    // Regla lógica: No comentar en tickets cerrados
-    if (ticket.estado === 'Cerrado') {
-      return res.status(409).json({ error: true, message: 'No se pueden añadir comentarios a un ticket cerrado.' });
+    if (!ticket) return res.status(404).json({ message: "Ticket no encontrado" });
+
+    const admins = ['admin@admin.com', 'otro-admin@email.com', 'profe@universidad.cl'];
+    const isAdmin = admins.includes(req.usuario.email);
+    const isOwner = ticket.usuarioId === req.usuario.id;
+
+    // Tanto el dueño como el admin pueden comentar
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: "No tienes permiso para comentar" });
     }
 
-    const comentario = await Comentario.create({
-      texto, ticketId: id, usuarioId: req.usuario.id
+    // Aquí creas tu comentario en la base de datos...
+    const nuevoComentario = await Comentario.create({
+        texto,
+        ticketId: id,
+        usuarioId: req.usuario.id
     });
-    return res.status(201).json({ error: false, message: 'Comentario agregado', comentario });
-  } catch (error) {
-    next(error);
-  }
+    
+    return res.json(nuevoComentario);
+  } catch (error) { next(error); }
 };
 
 // [rq-10] Obtener Métricas y SLA
