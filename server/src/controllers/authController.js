@@ -22,66 +22,61 @@ const register = async (req, res) => {
   }
 };
 
-const login = async (req, res) => {
+// --- TRUCO NINJA PARA LA DEMO: Memoria temporal para los códigos ---
+const codigosRecuperacion = {};
+
+// 1. Función para pedir el código
+const solicitarCodigo = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
-
+    const { email } = req.body;
     const usuario = await Usuario.findOne({ where: { email } });
+    
     if (!usuario) {
-      return res.status(401).json({ error: true, message: 'Credenciales inválidas.' });
+      return res.status(404).json({ message: "No existe cuenta con este correo." });
     }
 
-    const passValida = await bcrypt.compare(password, usuario.password);
-    if (!passValida) {
-      return res.status(401).json({ error: true, message: 'Credenciales inválidas.' });
-    }
+    // Generamos un código aleatorio de 6 dígitos
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    codigosRecuperacion[email] = codigo; // Lo guardamos en la memoria del servidor
 
-    const token = jwt.sign(
-      { id: usuario.id, email: usuario.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-
-    return res.json({
-      error: false,
-      message: 'Login exitoso',
-      token,
-      usuario: { id: usuario.id, nombre: usuario.nombre }
+    // Para la evaluación, lo devolvemos en el JSON para mostrarlo en pantalla
+    return res.json({ 
+      message: "Código enviado", 
+      codigoSimulado: codigo 
     });
   } catch (error) {
-    return res.status(500).json({ error: true, message: 'Error en el servidor.' });
+    next(error);
   }
 };
 
-// Asegúrate de tener bcrypt importado arriba: const bcrypt = require('bcrypt');
-
+// 2. Función para validar el código y cambiar la clave
 const resetPassword = async (req, res, next) => {
   try {
-    // Recibimos el correo y la nueva contraseña que quiere el usuario
-    const { email, nuevaPassword } = req.body;
+    const { email, codigo, nuevaPassword } = req.body;
 
-    if (!email || !nuevaPassword) {
-      return res.status(400).json({ message: "Ingresa tu correo y la nueva contraseña." });
+    // Comparamos el código que escribió el usuario con el que tenemos en memoria
+    if (!codigosRecuperacion[email] || codigosRecuperacion[email] !== codigo) {
+      return res.status(400).json({ message: "El código es incorrecto o ha expirado." });
     }
 
-    // Buscamos si el usuario existe
     const usuario = await Usuario.findOne({ where: { email } });
-    if (!usuario) {
-      return res.status(404).json({ message: "No existe ninguna cuenta con este correo." });
-    }
-
-    // Encriptamos la nueva contraseña
+    
+    // Encriptamos y guardamos
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(nuevaPassword, salt);
-
-    // Actualizamos la base de datos
+    
     await usuario.update({ password: hashedPassword });
+    
+    // Destruimos el código para que no se pueda reusar
+    delete codigosRecuperacion[email];
     
     return res.json({ message: "Contraseña actualizada con éxito." });
   } catch (error) {
-    console.error("Error al resetear:", error);
-    return res.status(500).json({ message: "Error interno del servidor." });
+    next(error);
   }
 };
+
+// ¡Asegúrate de exportar ambas al final del archivo!
+// module.exports = { login, register, solicitarCodigo, resetPassword };
 
 module.exports = { login, register, resetPassword };
