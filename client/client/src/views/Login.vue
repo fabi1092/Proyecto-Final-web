@@ -26,8 +26,9 @@ const login = async () => {
       localStorage.setItem('token', data.token);
       mensaje.value = "¡Inicio de sesión exitoso!";
       
-      // Magia de redirección instantánea al dashboard
-      router.push('/dashboard'); 
+      
+     // Redirección forzada e infalible
+      window.location.href = '/dashboard';
       
     } else {
       mensaje.value = data.message || "Error al iniciar sesión";
