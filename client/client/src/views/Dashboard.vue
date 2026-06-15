@@ -1,12 +1,14 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, reactive } from 'vue'; // ¡Agregamos reactive aquí!
 
 const tickets = ref([]);
 const metricas = ref(null);
 const nuevoTitulo = ref('');
 const nuevaDescripcion = ref('');
 const nuevaPrioridad = ref('Media');
-const nuevoComentario = ref('');
+
+// 1. LA SOLUCIÓN AL TEXTO CLONADO: Un diccionario reactivo para cada ticket
+const comentariosLocales = reactive({});
 
 // Variable para saber si el que entró es el admin
 const esAdmin = ref(false);
@@ -21,7 +23,6 @@ const getAuthHeaders = () => {
 
 const obtenerTickets = async () => {
   try {
-    // Ya no necesitamos enviar ?esAdmin=true. El servidor ya sabe quién eres por el Token.
     const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets`, { 
       headers: getAuthHeaders() 
     });
@@ -76,38 +77,38 @@ const eliminarTicket = async (id) => {
   } catch (error) { console.error("Error al eliminar ticket"); }
 };
 
+// 2. ACTUALIZAMOS agregarComentario para usar el diccionario local
 const agregarComentario = async (id) => {
-  if(!nuevoComentario.value) return alert("Escribe un comentario primero");
+  const texto = comentariosLocales[id]; // Buscamos el texto específico de este ticket
+  
+  if(!texto) return alert("Escribe un comentario primero");
+  
   try {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/${id}/comentarios`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ texto: nuevoComentario.value })
+      body: JSON.stringify({ texto })
     });
+    
     if (res.ok) {
       alert("Comentario guardado con éxito");
-      nuevoComentario.value = '';
+      comentariosLocales[id] = ''; // Limpiamos ÚNICAMENTE la caja de este ticket
     }
   } catch (error) { console.error("Error al comentar"); }
 };
 
 const cerrarSesion = () => {
   localStorage.removeItem('token');
-  localStorage.removeItem('email'); // Limpiamos también el correo por seguridad
+  localStorage.removeItem('email'); 
   window.location.href = '/'; 
 };
 
 onMounted(async () => {
   const correoLogueado = localStorage.getItem('email');
-  console.log("El correo en LocalStorage es:", correoLogueado); // MIRA ESTO EN LA CONSOLA (F12 -> Console)
-
   const admins = ['admin@admin.com', 'otro-admin@email.com', 'profe@universidad.cl'];
 
   if (correoLogueado && admins.includes(correoLogueado.toLowerCase())) {
     esAdmin.value = true;
-    console.log("¡Eres admin!");
-  } else {
-    console.log("No eres admin o el correo no coincide");
   }
 
   await obtenerTickets();
@@ -147,15 +148,11 @@ onMounted(async () => {
         <p><b>Estado:</b> {{ ticket.estado }} | <b>Prioridad:</b> {{ ticket.prioridad }}</p>
         <p>{{ ticket.descripcion }}</p>
         
-        <div class="acciones" v-if="esAdmin">
-          <input v-model="nuevoComentario" placeholder="Añadir comentario..." />
+        <div class="acciones">
+          <input v-model="comentariosLocales[ticket.id]" placeholder="Añadir comentario..." />
           <button @click.prevent="agregarComentario(ticket.id)">Comentar</button>
           <button class="btn-cerrar" v-if="ticket.estado === 'Abierto'" @click.prevent="cerrarTicket(ticket.id)">Cerrar</button>
           <button class="btn-eliminar" @click.prevent="eliminarTicket(ticket.id)">Eliminar</button>
-        </div>
-        
-        <div class="acciones-usuario" v-else>
-          <p class="nota-usuario"><em>Tu ticket está siendo revisado por un administrador.</em></p>
         </div>
 
       </div>
