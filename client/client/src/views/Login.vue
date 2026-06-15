@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const email = ref('');
 const password = ref('');
 const mensaje = ref('');
@@ -23,8 +25,10 @@ const login = async () => {
     if (res.ok) {
       localStorage.setItem('token', data.token);
       mensaje.value = "¡Inicio de sesión exitoso!";
-      // Descomenta la siguiente línea si quieres que te redirija automáticamente
-      // window.location.href = '/dashboard'; 
+      
+      // Magia de redirección instantánea al dashboard
+      router.push('/dashboard'); 
+      
     } else {
       mensaje.value = data.message || "Error al iniciar sesión";
     }
@@ -62,7 +66,6 @@ input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
 
 .mensaje { color: #d9534f; font-weight: bold; }
 
-/* Estilos para la nueva sección de registro */
 .opciones-extra { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
 .opciones-extra p { margin-bottom: 10px; color: #555; }
 .btn-secundario { display: inline-block; padding: 8px 15px; background-color: #f8f9fa; color: #007bff; text-decoration: none; border: 1px solid #007bff; border-radius: 5px; font-weight: bold; transition: all 0.3s ease; }

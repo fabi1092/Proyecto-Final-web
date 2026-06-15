@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const nombre = ref('');
 const email = ref('');
 const password = ref('');
@@ -28,11 +30,16 @@ const registrar = async () => {
     const data = await res.json();
 
     if (res.ok) {
-      mensaje.value = "¡Registro exitoso! Ya puedes ir a iniciar sesión.";
-      // Limpiar los campos después de registrarse
+      mensaje.value = "¡Registro exitoso! Redirigiendo al Login...";
       nombre.value = '';
       email.value = '';
       password.value = '';
+      
+      // Magia de redirección después de 1.5 segundos
+      setTimeout(() => {
+        router.push('/'); // Cámbiarlo por '/login' si tu ruta de inicio de sesión se llama así
+      }, 1500);
+
     } else {
       mensaje.value = data.message || "Error al crear la cuenta";
     }
