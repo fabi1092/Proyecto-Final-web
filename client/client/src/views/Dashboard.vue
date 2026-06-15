@@ -98,8 +98,8 @@ onMounted(() => {
   // --- MAGIA DEL ADMINISTRADOR ---
   const correoLogueado = localStorage.getItem('email');
   
-  // CAMBIA ESTO por el correo que usarás como administrador principal
-  if (correoLogueado === 'Admin@admin.com') {
+  // Convertimos a minúsculas para evitar errores de tipeo
+  if (correoLogueado && correoLogueado.toLowerCase() === 'admin@admin.com') {
     esAdmin.value = true;
   }
 
