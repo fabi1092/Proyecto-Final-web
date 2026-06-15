@@ -8,6 +8,9 @@ const nuevaDescripcion = ref('');
 const nuevaPrioridad = ref('Media');
 const nuevoComentario = ref('');
 
+// Variable para saber si el que entró es el admin
+const esAdmin = ref(false);
+
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   return {
@@ -85,16 +88,21 @@ const agregarComentario = async (id) => {
   } catch (error) { console.error("Error al comentar"); }
 };
 
-// --- NUEVA FUNCIÓN: CERRAR SESIÓN ---
 const cerrarSesion = () => {
-  // 1. Borramos el pase VIP de la memoria del navegador
   localStorage.removeItem('token');
-  
-  // 2. Redirección forzada al Login (Cambia '/' por '/login' si es necesario)
+  localStorage.removeItem('email'); // Limpiamos también el correo por seguridad
   window.location.href = '/'; 
 };
 
 onMounted(() => {
+  // --- MAGIA DEL ADMINISTRADOR ---
+  const correoLogueado = localStorage.getItem('email');
+  
+  // CAMBIA ESTO por el correo que usarás como administrador principal
+  if (correoLogueado === 'Admin@admin.com') {
+    esAdmin.value = true;
+  }
+
   obtenerTickets();
   obtenerMetricas();
 });
@@ -103,11 +111,11 @@ onMounted(() => {
 <template>
   <div class="dashboard">
     <div class="header">
-      <h1>Panel de Soporte Técnico</h1>
+      <h1>Panel de Soporte <span v-if="esAdmin" class="badge-admin">(Administrador)</span></h1>
       <button class="btn-salir" @click.prevent="cerrarSesion">Cerrar Sesión</button>
     </div>
 
-    <div class="metricas" v-if="metricas">
+    <div class="metricas" v-if="esAdmin && metricas">
       <div class="tarjeta">Total Tickets: <b>{{ metricas.totalTickets }}</b></div>
       <div class="tarjeta">Abiertos: <b>{{ metricas.ticketsAbiertos }}</b></div>
       <div class="tarjeta">Cerrados: <b>{{ metricas.ticketsCerrados }}</b></div>
@@ -125,19 +133,24 @@ onMounted(() => {
       <button class="btn-crear" @click.prevent="crearTicket">Enviar Ticket</button>
     </div>
 
-    <h3>Tus Tickets</h3>
+    <h3>Tickets Recientes</h3>
     <div class="lista-tickets">
       <div class="ticket-card" v-for="ticket in tickets" :key="ticket.id">
         <h4>#{{ ticket.id }} - {{ ticket.titulo }}</h4>
         <p><b>Estado:</b> {{ ticket.estado }} | <b>Prioridad:</b> {{ ticket.prioridad }}</p>
         <p>{{ ticket.descripcion }}</p>
         
-        <div class="acciones">
+        <div class="acciones" v-if="esAdmin">
           <input v-model="nuevoComentario" placeholder="Añadir comentario..." />
           <button @click.prevent="agregarComentario(ticket.id)">Comentar</button>
-          <button class="btn-cerrar" v-if="ticket.estado === 'Abierto'" @click.prevent="cerrarTicket(ticket.id)">Cerrar Ticket</button>
+          <button class="btn-cerrar" v-if="ticket.estado === 'Abierto'" @click.prevent="cerrarTicket(ticket.id)">Cerrar</button>
           <button class="btn-eliminar" @click.prevent="eliminarTicket(ticket.id)">Eliminar</button>
         </div>
+        
+        <div class="acciones-usuario" v-else>
+          <p class="nota-usuario"><em>Tu ticket está siendo revisado por un administrador.</em></p>
+        </div>
+
       </div>
     </div>
   </div>
@@ -145,9 +158,9 @@ onMounted(() => {
 
 <style scoped>
 .dashboard { max-width: 800px; margin: 20px auto; font-family: sans-serif; }
-/* Estilos del nuevo encabezado */
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #eee; }
-h1 { color: #333; margin: 0; }
+h1 { color: #333; margin: 0; display: flex; align-items: center; gap: 10px; }
+.badge-admin { font-size: 14px; background: #17a2b8; color: white; padding: 3px 8px; border-radius: 10px; }
 .btn-salir { background-color: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
 .btn-salir:hover { background-color: #c82333; }
 
@@ -156,14 +169,15 @@ h3 { color: #333; }
 .tarjeta { background: #f8f9fa; padding: 15px; border-radius: 8px; flex: 1; text-align: center; border: 1px solid #ddd; }
 .crear-ticket { display: flex; flex-direction: column; gap: 10px; background: #e9ecef; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
 input, select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-button { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; color: white; background: #007bff; }
+button { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; color: white; background: #007bff; transition: 0.2s; }
 button:hover { background: #0056b3; }
 .btn-crear { background: #28a745; font-size: 16px; padding: 12px; }
 .btn-crear:hover { background: #218838; }
 .ticket-card { background: white; padding: 15px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-.acciones { display: flex; gap: 10px; margin-top: 15px; }
+.acciones { display: flex; gap: 10px; margin-top: 15px; align-items: center; }
 .btn-cerrar { background: #ffc107; color: black; }
 .btn-cerrar:hover { background: #e0a800; }
 .btn-eliminar { background: #dc3545; }
 .btn-eliminar:hover { background: #c82333; }
+.nota-usuario { color: #6c757d; font-size: 14px; margin-top: 10px; }
 </style>

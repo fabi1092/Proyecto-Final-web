@@ -5,8 +5,16 @@ const { Op } = require('sequelize');
 const getTickets = async (req, res, next) => {
   try {
     const { estado, prioridad } = req.query; // Capturamos filtros de la URL
-    const whereClause = { usuarioId: req.usuario.id };
     
+    // 1. Empezamos con la cláusula de búsqueda vacía (modo Dios activado)
+    const whereClause = {};
+    
+    // 2. LA MAGIA: Si el que hace la petición NO es el jefe, le ponemos el candado de su ID.
+    if (req.usuario.email !== 'Admin@admin.com') {
+      whereClause.usuarioId = req.usuario.id;
+    }
+    
+    // 3. Aplicamos los filtros extras de la URL
     if (estado) whereClause.estado = estado;
     if (prioridad) whereClause.prioridad = prioridad;
 
