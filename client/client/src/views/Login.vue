@@ -46,7 +46,7 @@ const login = async () => {
     <div class="formulario">
       <input v-model="email" type="email" placeholder="Correo electrónico" />
       <input v-model="password" type="password" placeholder="Contraseña" />
-      <button class="btn-principal" @click="login">Entrar al Sistema</button>
+      <button class="btn-principal" @click.prevent="login">Entrar al Sistema</button>
       <p class="mensaje" v-if="mensaje">{{ mensaje }}</p>
       
       <div class="opciones-extra">
