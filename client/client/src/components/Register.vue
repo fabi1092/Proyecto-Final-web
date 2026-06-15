@@ -1,13 +1,16 @@
 <script setup>
 import { ref } from 'vue';
 
+// 1. Variables del formulario
 const nombre = ref('');
 const email = ref('');
 const password = ref('');
-const mensaje = ref('');
 
-const registrar = async () => {
-  // Limpiamos el error cada vez que el usuario intenta de nuevo
+// 2. AQUÍ ESTÁ LA VARIABLE MÁGICA (Debe estar suelta, fuera de cualquier función)
+const mensajeError = ref('');
+
+const registrarUsuario = async () => {
+  // Limpiamos el error cada vez que el usuario hace clic
   mensajeError.value = ''; 
 
   try {
@@ -21,18 +24,17 @@ const registrar = async () => {
       })
     });
 
-    const data = await res.json(); // Leemos lo que nos responde el servidor
+    const data = await res.json();
 
     if (!res.ok) {
-      // SI FALLA: Capturamos el mensaje del backend (ej: "El correo ya existe" o "Correo inválido")
-      // Si el backend no manda un 'message', ponemos uno genérico.
+      // Si el backend se queja, guardamos el mensaje aquí
       mensajeError.value = data.message || "Error al registrarse. Revisa tus datos.";
-      return; // Detenemos la ejecución aquí
+      return; 
     }
 
-    // SI TODO SALE BIEN: Redirigimos al login (o donde lo tengas configurado)
-    alert("¡Registro exitoso!");
-    window.location.href = '/login'; 
+    // Si todo sale perfecto
+    alert("¡Registro exitoso! Ahora puedes iniciar sesión.");
+    window.location.href = '/'; // O la ruta que uses para tu Login
 
   } catch (error) {
     console.error("Error en la petición:", error);
@@ -42,35 +44,41 @@ const registrar = async () => {
 </script>
 
 <template>
-  <div class="contenedor">
-    <h2>Crear Cuenta Nueva</h2>
+  <div class="registro-container">
+    <h2>Crear Cuenta</h2>
+    
+    <p v-if="mensajeError" class="alerta-error">{{ mensajeError }}</p>
+
     <div class="formulario">
-      <input v-model="nombre" type="text" placeholder="Tu nombre completo" />
-      <input v-model="email" type="email" placeholder="Correo electrónico" />
-      <input v-model="password" type="password" placeholder="Contraseña segura" />
+      <input type="text" v-model="nombre" placeholder="Nombre completo" required />
+      <input type="email" v-model="email" placeholder="Correo electrónico" required />
+      <input type="password" v-model="password" placeholder="Contraseña" required />
       
-      <p v-if="mensajeError" class="alerta-error">{{ mensajeError }}</p>
-      <button class="btn-principal" @click.prevent="registrar">Registrarse</button>
-      
-      <p class="mensaje" v-if="mensaje">{{ mensaje }}</p>
+      <button class="btn-registrar" @click.prevent="registrarUsuario">Registrarse</button>
     </div>
+    
+    <p class="nota">¿Ya tienes cuenta? <a href="/">Inicia sesión aquí</a></p>
   </div>
 </template>
 
 <style scoped>
-.contenedor { max-width: 400px; margin: 50px auto; text-align: center; font-family: sans-serif; }
-.formulario { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
-input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-.btn-principal { padding: 10px; background-color: #17a2b8; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-.btn-principal:hover { background-color: #138496; }
-.mensaje { color: #28a745; font-weight: bold; margin-top: 15px; }
+.registro-container { max-width: 400px; margin: 50px auto; font-family: sans-serif; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+h2 { color: #333; margin-bottom: 20px; }
+.formulario { display: flex; flex-direction: column; gap: 15px; }
+input { padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
+.btn-registrar { background-color: #28a745; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.2s; }
+.btn-registrar:hover { background-color: #218838; }
+.nota { margin-top: 20px; font-size: 14px; color: #666; }
+.nota a { color: #007bff; text-decoration: none; }
+.nota a:hover { text-decoration: underline; }
+
+/* ESTILOS DEL ERROR */
 .alerta-error {
   background-color: #f8d7da;
   color: #721c24;
   border: 1px solid #f5c6cb;
   padding: 10px;
   border-radius: 5px;
-  margin-top: 15px;
   margin-bottom: 15px;
   text-align: center;
   font-weight: bold;
