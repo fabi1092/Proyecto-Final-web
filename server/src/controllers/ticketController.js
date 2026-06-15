@@ -4,17 +4,15 @@ const { Op } = require('sequelize');
 // [rq-07] Leer Tickets con Filtros y [rq-04] Traer Comentarios
 const getTickets = async (req, res, next) => {
   try {
-    const { estado, prioridad } = req.query; // Capturamos filtros de la URL
-    
-    // 1. Empezamos con la cláusula de búsqueda vacía (modo Dios activado)
+    const { estado, prioridad } = req.query;
     const whereClause = {};
-    
-    // 2. LA MAGIA: Si el que hace la petición NO es el jefe, le ponemos el candado de su ID.
-    if (req.query.esAdmin !== 'true') {
+
+    // ¡La magia! El servidor comprueba directamente el correo del usuario del Token.
+    // Esto es mucho más seguro y no falla.
+    if (req.usuario.email !== 'admin@admin.com') { // Asegúrate que este sea TU correo de admin
       whereClause.usuarioId = req.usuario.id;
     }
     
-    // 3. Aplicamos los filtros extras de la URL
     if (estado) whereClause.estado = estado;
     if (prioridad) whereClause.prioridad = prioridad;
 
@@ -29,7 +27,7 @@ const getTickets = async (req, res, next) => {
     });
     return res.json(tickets);
   } catch (error) {
-    next(error); // [GEN-08] Pasa el error al middleware centralizado
+    next(error);
   }
 };
 

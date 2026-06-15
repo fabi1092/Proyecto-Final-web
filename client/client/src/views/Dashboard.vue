@@ -21,8 +21,10 @@ const getAuthHeaders = () => {
 
 const obtenerTickets = async () => {
   try {
-    // Le pegamos la señal secreta al final del enlace
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets?esAdmin=${esAdmin.value}`, { headers: getAuthHeaders() });
+    // Ya no necesitamos enviar ?esAdmin=true. El servidor ya sabe quién eres por el Token.
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets`, { 
+      headers: getAuthHeaders() 
+    });
     if (res.ok) tickets.value = await res.json();
   } catch (error) { console.error("Error al cargar tickets"); }
 };
