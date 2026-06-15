@@ -1,8 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
 
-const router = useRouter();
 const nombre = ref('');
 const email = ref('');
 const password = ref('');
@@ -30,14 +28,15 @@ const registrar = async () => {
     const data = await res.json();
 
     if (res.ok) {
-      mensaje.value = "¡Registro exitoso! Redirigiendo al Login...";
+      mensaje.value = "¡Registro exitoso! Llevándote al Login...";
       nombre.value = '';
       email.value = '';
       password.value = '';
       
-      // Magia de redirección después de 1.5 segundos
+      // Magia de redirección forzada después de 1.5 segundos
       setTimeout(() => {
-        router.push('/'); // Cámbiarlo por '/login' si tu ruta de inicio de sesión se llama así
+        // Asegúrate de que '/' sea la ruta de tu Login. Si es '/login', cámbialo aquí.
+        window.location.href = '/'; 
       }, 1500);
 
     } else {
@@ -57,7 +56,9 @@ const registrar = async () => {
       <input v-model="nombre" type="text" placeholder="Tu nombre completo" />
       <input v-model="email" type="email" placeholder="Correo electrónico" />
       <input v-model="password" type="password" placeholder="Contraseña segura" />
-      <button @click="registrar">Registrarse</button>
+      
+      <button class="btn-principal" @click.prevent="registrar">Registrarse</button>
+      
       <p class="mensaje" v-if="mensaje">{{ mensaje }}</p>
     </div>
   </div>
@@ -67,7 +68,7 @@ const registrar = async () => {
 .contenedor { max-width: 400px; margin: 50px auto; text-align: center; font-family: sans-serif; }
 .formulario { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
 input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-button { padding: 10px; background-color: #17a2b8; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-button:hover { background-color: #138496; }
+.btn-principal { padding: 10px; background-color: #17a2b8; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+.btn-principal:hover { background-color: #138496; }
 .mensaje { color: #28a745; font-weight: bold; margin-top: 15px; }
 </style>
