@@ -144,9 +144,17 @@ const addComentario = async (req, res, next) => {
 // [rq-10] Obtener Métricas y SLA
 const getMetricas = async (req, res, next) => {
   try {
-    // Buscamos los tickets activos del usuario
+    const admins = ['admin@admin.com', 'otro-admin@email.com', 'profe@universidad.cl'];
+    const isAdmin = admins.includes(req.usuario.email);
+
+    const whereClause = { estado: { [Op.ne]: 'Cerrado' } };
+    if (!isAdmin) {
+      whereClause.usuarioId = req.usuario.id;
+    }
+
+    // Buscamos los tickets activos (todos para admin, solo los suyos para usuario)
     const ticketsAbiertos = await Ticket.findAll({ 
-      where: { estado: { [Op.ne]: 'Cerrado' }, usuarioId: req.usuario.id } 
+      where: whereClause
     });
     
     let altas = 0, medias = 0, bajas = 0, slaVencidos = 0;

@@ -1,4 +1,4 @@
-const { Usuario } = require('../models');
+const { Usuario, ResetToken } = require('../models');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
@@ -11,10 +11,7 @@ const register = async (req, res, next) => {
     const usuarioExistente = await Usuario.findOne({ where: { email } });
     if (usuarioExistente) return res.status(400).json({ message: "Este correo ya está registrado." });
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    
-    await Usuario.create({ nombre, email, password: hashedPassword });
+    await Usuario.create({ nombre, email, password });
     return res.status(201).json({ message: "Usuario creado exitosamente" });
   } catch (error) {
     if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
@@ -44,8 +41,6 @@ const login = async (req, res, next) => {
 };
 
 // --- 3. SOLICITAR CÓDIGO (RECUPERACIÓN) ---
-const codigosRecuperacion = {};
-
 const solicitarCodigo = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -53,7 +48,10 @@ const solicitarCodigo = async (req, res, next) => {
     if (!usuario) return res.status(404).json({ message: "No existe cuenta con este correo." });
 
     const codigo = Math.floor(100000 + Math.random() * 900000).toString();
-    codigosRecuperacion[email] = codigo; 
+    const expiracion = new Date();
+    expiracion.setMinutes(expiracion.getMinutes() + 15);
+
+    await ResetToken.create({ token: codigo, email, expiracion });
 
     return res.json({ message: "Código enviado", codigoSimulado: codigo });
   } catch (error) { next(error); }
@@ -63,16 +61,26 @@ const solicitarCodigo = async (req, res, next) => {
 const resetPassword = async (req, res, next) => {
   try {
     const { email, codigo, nuevaPassword } = req.body;
-    if (!codigosRecuperacion[email] || codigosRecuperacion[email] !== codigo) {
-      return res.status(400).json({ message: "El código es incorrecto o ha expirado." });
+    
+    const tokenValido = await ResetToken.findOne({
+      where: { email, token: codigo, usado: false }
+    });
+
+    if (!tokenValido) {
+      return res.status(400).json({ message: "El código es incorrecto o ya fue utilizado." });
+    }
+
+    if (new Date() > tokenValido.expiracion) {
+      return res.status(400).json({ message: "El código ha expirado." });
     }
 
     const usuario = await Usuario.findOne({ where: { email } });
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(nuevaPassword, salt);
-    
-    await usuario.update({ password: hashedPassword });
-    delete codigosRecuperacion[email];
+    usuario.password = await bcrypt.hash(nuevaPassword, salt);
+    await usuario.save();
+
+    tokenValido.usado = true;
+    await tokenValido.save();
     
     return res.json({ message: "Contraseña actualizada con éxito." });
   } catch (error) { next(error); }

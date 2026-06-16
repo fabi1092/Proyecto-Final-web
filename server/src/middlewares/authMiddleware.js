@@ -11,7 +11,7 @@ const authenticate = (req, res, next) => {
 
   try {
     // Validar token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secreto_super_seguro');
     req.usuario = decoded; // Guardamos los datos del usuario en la request
     next(); // Permite pasar al controlador
   } catch (error) {
