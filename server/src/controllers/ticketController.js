@@ -68,13 +68,22 @@ const updateTicket = async (req, res, next) => {
     
     if (!ticket) return res.status(404).json({ message: "Ticket no encontrado" });
 
-    // Verificamos si es admin
+    // Verificamos si es admin o dueño
     const admins = ['admin@admin.com', 'otro-admin@email.com', 'profe@universidad.cl'];
     const isAdmin = admins.includes(req.usuario.email);
+    const isOwner = ticket.usuarioId === req.usuario.id;
 
-    // LA REGLA DE ORO: Solo el administrador puede modificar/cerrar tickets
-    if (!isAdmin) {
-      return res.status(403).json({ message: "Acceso denegado: Solo un administrador puede cerrar tickets" });
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: "Acceso denegado: Solo el administrador o el creador pueden editar tickets" });
+    }
+
+    if (isOwner && !isAdmin) {
+      if (ticket.estado !== 'Abierto') {
+        return res.status(403).json({ message: "No puedes editar un ticket que ya no está Abierto" });
+      }
+      // Usuarios no pueden cambiar su estado ni tiempo de resolucion
+      delete req.body.estado;
+      delete req.body.tiempoResolucion;
     }
 
     await ticket.update(req.body);
@@ -123,11 +132,10 @@ const addComentario = async (req, res, next) => {
 
     const admins = ['admin@admin.com', 'otro-admin@email.com', 'profe@universidad.cl'];
     const isAdmin = admins.includes(req.usuario.email);
-    const isOwner = ticket.usuarioId === req.usuario.id;
 
-    // Tanto el dueño como el admin pueden comentar
-    if (!isAdmin && !isOwner) {
-      return res.status(403).json({ message: "No tienes permiso para comentar" });
+    // Solo los admins pueden comentar (pedido del usuario)
+    if (!isAdmin) {
+      return res.status(403).json({ message: "Solo los administradores pueden dejar comentarios" });
     }
 
     // Aquí creas tu comentario en la base de datos...

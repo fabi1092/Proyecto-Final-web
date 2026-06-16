@@ -10,6 +10,38 @@ const nuevaPrioridad = ref('Media');
 // 1. LA SOLUCIÓN AL TEXTO CLONADO: Un diccionario reactivo para cada ticket
 const comentariosLocales = reactive({});
 
+// Estado para edición de tickets
+const ticketEditando = ref(null);
+const ticketEditData = reactive({ titulo: '', descripcion: '', prioridad: 'Media' });
+
+const iniciarEdicion = (ticket) => {
+  ticketEditando.value = ticket.id;
+  ticketEditData.titulo = ticket.titulo;
+  ticketEditData.descripcion = ticket.descripcion;
+  ticketEditData.prioridad = ticket.prioridad || 'Media';
+};
+
+const cancelarEdicion = () => {
+  ticketEditando.value = null;
+};
+
+const guardarEdicion = async (id) => {
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ ...ticketEditData })
+    });
+    if (res.ok) {
+      cancelarEdicion();
+      obtenerTickets();
+    } else {
+      const data = await res.json();
+      alert(data.message || "Error al editar ticket");
+    }
+  } catch (error) { console.error("Error al guardar edición"); }
+};
+
 // Variable para saber si el que entró es el admin
 const esAdmin = ref(false);
 
@@ -144,16 +176,46 @@ onMounted(async () => {
     <h3>Tickets Recientes</h3>
     <div class="lista-tickets">
       <div class="ticket-card" v-for="ticket in tickets" :key="ticket.id">
-        <h4>#{{ ticket.id }} - {{ ticket.titulo }}</h4>
-        <p><b>Estado:</b> {{ ticket.estado }} | <b>Prioridad:</b> {{ ticket.prioridad }}</p>
-        <p>{{ ticket.descripcion }}</p>
         
-        <div class="acciones">
-          <input v-model="comentariosLocales[ticket.id]" placeholder="Añadir comentario..." />
-          <button @click.prevent="agregarComentario(ticket.id)">Comentar</button>
-          <button class="btn-cerrar" v-if="ticket.estado === 'Abierto' && esAdmin" @click.prevent="cerrarTicket(ticket.id)">Cerrar</button>
-          <button class="btn-eliminar" @click.prevent="eliminarTicket(ticket.id)">Eliminar</button>
-        </div>
+        <template v-if="ticketEditando === ticket.id">
+          <h4>Editando Ticket #{{ ticket.id }}</h4>
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
+            <input v-model="ticketEditData.titulo" placeholder="Título" class="edit-input" />
+            <input v-model="ticketEditData.descripcion" placeholder="Descripción" class="edit-input" />
+            <select v-model="ticketEditData.prioridad" class="edit-input">
+              <option value="Baja">Prioridad Baja</option>
+              <option value="Media">Prioridad Media</option>
+              <option value="Alta">Prioridad Alta</option>
+            </select>
+          </div>
+          <div class="acciones">
+            <button @click.prevent="guardarEdicion(ticket.id)" class="btn-crear">Guardar</button>
+            <button @click.prevent="cancelarEdicion" class="btn-eliminar">Cancelar</button>
+          </div>
+        </template>
+        
+        <template v-else>
+          <h4>#{{ ticket.id }} - {{ ticket.titulo }}</h4>
+          <p><b>Estado:</b> {{ ticket.estado }} | <b>Prioridad:</b> {{ ticket.prioridad }}</p>
+          <p>{{ ticket.descripcion }}</p>
+          
+          <div v-if="ticket.comentarios && ticket.comentarios.length > 0" class="comentarios-lista">
+            <h5>Comentarios del Administrador:</h5>
+            <div v-for="c in ticket.comentarios" :key="c.id" class="comentario-item">
+              <strong>{{ c.autor?.nombre || 'Admin' }}:</strong> {{ c.texto }}
+            </div>
+          </div>
+          
+          <div class="acciones">
+            <template v-if="esAdmin">
+              <input v-model="comentariosLocales[ticket.id]" placeholder="Añadir comentario..." />
+              <button @click.prevent="agregarComentario(ticket.id)">Comentar</button>
+              <button class="btn-cerrar" v-if="ticket.estado === 'Abierto'" @click.prevent="cerrarTicket(ticket.id)">Cerrar</button>
+            </template>
+            <button v-if="ticket.estado === 'Abierto'" @click.prevent="iniciarEdicion(ticket)">Editar</button>
+            <button class="btn-eliminar" @click.prevent="eliminarTicket(ticket.id)">Eliminar</button>
+          </div>
+        </template>
 
       </div>
     </div>
@@ -184,4 +246,8 @@ button:hover { background: #0056b3; }
 .btn-eliminar { background: #dc3545; }
 .btn-eliminar:hover { background: #c82333; }
 .nota-usuario { color: #6c757d; font-size: 14px; margin-top: 10px; }
+.edit-input { width: 100%; box-sizing: border-box; }
+.comentarios-lista { background: #f1f3f5; padding: 10px; border-radius: 5px; margin-top: 10px; }
+.comentarios-lista h5 { margin: 0 0 5px 0; color: #495057; }
+.comentario-item { font-size: 14px; margin-bottom: 5px; }
 </style>
