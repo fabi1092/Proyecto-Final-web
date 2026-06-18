@@ -18,6 +18,12 @@ const registrarUsuario = async () => {
     mensajeError.value = "Por favor, ingresa un correo electrónico válido.";
     return; // Detenemos todo aquí, no enviamos nada al servidor
    }
+
+  if (password.value.length < 6) {
+    mensajeError.value = "La contraseña debe tener mínimo 6 caracteres.";
+    return;
+  }
+
   try {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
       method: 'POST',

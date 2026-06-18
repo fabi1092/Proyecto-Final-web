@@ -8,6 +8,10 @@ const register = async (req, res, next) => {
     const { nombre, email, password } = req.body;
     if (!nombre || !email || !password) return res.status(400).json({ message: "Todos los campos son obligatorios." });
 
+    if (password.length < 6) {
+      return res.status(400).json({ message: "La contraseña debe tener mínimo 6 caracteres." });
+    }
+
     const usuarioExistente = await Usuario.findOne({ where: { email } });
     if (usuarioExistente) return res.status(400).json({ message: "Este correo ya está registrado." });
 
